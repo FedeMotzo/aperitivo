@@ -62,7 +62,8 @@
   .swap{animation:slide .4s cubic-bezier(.2,1.2,.4,1) both}
   @keyframes slide{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:none}}
 
-  .answers{position:relative;height:130px}
+  .answers{position:relative;height:130px;display:flex;justify-content:center;align-items:flex-start;gap:14px}
+  .answers.stack{flex-direction:column;align-items:center;gap:12px;height:auto}
   .btn{
     font-family:"Fredoka",sans-serif;font-weight:600;font-size:19px;
     cursor:pointer;padding:14px 40px;border-radius:99px;
@@ -74,9 +75,10 @@
   .btn:focus-visible{outline:3px dashed var(--grape);outline-offset:4px}
   .yes{background:var(--mint)}
   .yes:hover{transform:scale(1.07) rotate(-2deg)}
-  .no{position:absolute;left:50%;top:0;transform:translateX(55px);background:#fff}
+  .no{background:#fff}
+  .no.loose{position:absolute;left:0;top:0}
   .no.hold{
-    position:relative;left:auto;top:auto;transform:none;margin-top:14px;
+    position:relative;left:auto;top:auto;transform:none;
     overflow:hidden;padding:14px 24px;font-size:16px;
     touch-action:none;user-select:none;-webkit-user-select:none;
   }
@@ -105,8 +107,16 @@
 <body>
 
 <main class="card">
+  <!-- INTRO -->
+  <section class="step on" id="intro">
+    <span class="emoji">🔮</span>
+    <h1>Tre domande.</h1>
+    <p class="lead">Rispondi sinceramente.</p>
+    <button class="btn yes" id="start" style="margin-top:26px">Iniziamo</button>
+  </section>
+
   <!-- QUIZ -->
-  <section class="step on" id="quiz">
+  <section class="step" id="quiz">
     <div class="pips" id="pips"><i class="pip on"></i><i class="pip"></i><i class="pip"></i></div>
     <span class="emoji" id="emoji">🔮</span>
     <h1 id="question"></h1>
@@ -120,8 +130,8 @@
   <!-- FINE -->
   <section class="step" id="done">
     <span class="emoji">🥂</span>
-    <h1>Fatto.</h1>
-    <p class="lead">Non ti resta che decidere <span class="hl">quando</span> e dirlo a Federico.</p>
+    <h1>Visto? Hai messo <span class="hl">Sì</span>.</h1>
+    <p class="lead">L'oracolo si sbagliava.<br>Ora dobbiamo solo decidere quando.</p>
   </section>
 
 </main>
@@ -173,7 +183,6 @@ function load(n){
     no.textContent='No';
     answers.classList.remove('stack');
     answers.style.height='';
-    no.style.left='50%'; no.style.top='0'; no.style.transform='translateX(55px)';
   }
   pips.forEach((p,k)=>p.classList.toggle('on',k<=n));
 }
@@ -186,9 +195,9 @@ function tease(){
 
 function flee(){
   const b=answers.getBoundingClientRect();
+  no.classList.add('loose');               // esce dal flusso solo quando scappa
   no.style.left = Math.random()*Math.max(b.width-no.offsetWidth,0)+'px';
   no.style.top  = Math.random()*Math.max(b.height-no.offsetHeight,0)+'px';
-  no.style.transform='none';
 }
 function morph(){
   if(morphed) return;
@@ -298,6 +307,8 @@ function rain(){
   b.style.cssText=`background:${c};width:${s}px;height:${s}px;left:${l};top:${t};animation-delay:${d}s`;
   document.body.appendChild(b);
 });
+
+document.getElementById('start').addEventListener('click', ()=>{ show('quiz'); load(0); });
 
 load(0);
 </script>
