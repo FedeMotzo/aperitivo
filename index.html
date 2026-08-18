@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tre domande veloci</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --grape:#33204d;
+    --coral:#ff5e5b;
+    --tang:#ffa24b;
+    --mint:#25cf9b;
+    --sky:#57bdf5;
+    --cream:#fff6e9;
+    --shadow:#33204d;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{
+    font-family:"Nunito",system-ui,sans-serif;
+    color:var(--grape);
+    background:linear-gradient(160deg,#ffd76e 0%,#ff9d6e 45%,#ff6f91 100%);
+    display:flex;align-items:center;justify-content:center;
+    padding:22px;overflow:hidden;
+  }
+
+  /* bolle che galleggiano */
+  .blob{position:fixed;border-radius:50%;filter:blur(2px);opacity:.35;pointer-events:none;animation:float 14s ease-in-out infinite}
+  @keyframes float{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-40px) rotate(12deg)}}
+
+  .card{
+    position:relative;z-index:2;
+    width:min(560px,100%);
+    background:var(--cream);
+    border:3px solid var(--grape);
+    border-radius:28px;
+    box-shadow:10px 10px 0 var(--shadow);
+    padding:38px 30px 32px;
+    text-align:center;
+    animation:pop .55s cubic-bezier(.2,1.3,.4,1) both;
+  }
+  @keyframes pop{from{opacity:0;transform:scale(.9) translateY(20px)}to{opacity:1;transform:none}}
+
+  .pips{display:flex;gap:8px;justify-content:center;margin-bottom:22px}
+  .pip{width:34px;height:8px;border-radius:99px;border:2px solid var(--grape);background:transparent;transition:background .3s}
+  .pip.on{background:var(--coral)}
+
+  .emoji{font-size:44px;display:block;margin-bottom:10px;animation:wobble 2.6s ease-in-out infinite}
+  @keyframes wobble{0%,100%{transform:rotate(-7deg)}50%{transform:rotate(7deg)}}
+
+  h1{
+    font-family:"Fredoka",sans-serif;font-weight:600;
+    font-size:clamp(24px,5.4vw,34px);line-height:1.25;
+    margin:0 auto 30px;max-width:19ch;
+  }
+  .hl{position:relative;white-space:nowrap}
+  .hl::after{content:"";position:absolute;left:-2px;right:-2px;bottom:2px;height:38%;background:var(--tang);z-index:-1;border-radius:4px}
+  .swap{animation:slide .4s cubic-bezier(.2,1.2,.4,1) both}
+  @keyframes slide{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:none}}
+
+  .answers{position:relative;height:130px}
+  .btn{
+    font-family:"Fredoka",sans-serif;font-weight:600;font-size:19px;
+    cursor:pointer;padding:14px 40px;border-radius:99px;
+    border:3px solid var(--grape);background:var(--cream);color:var(--grape);
+    box-shadow:4px 4px 0 var(--grape);
+    transition:transform .15s,box-shadow .15s,background .25s;
+  }
+  .btn:active{transform:translate(4px,4px);box-shadow:0 0 0 var(--grape)}
+  .btn:focus-visible{outline:3px dashed var(--grape);outline-offset:4px}
+  .yes{background:var(--mint)}
+  .yes:hover{transform:scale(1.07) rotate(-2deg)}
+  .no{position:absolute;left:50%;top:0;transform:translateX(55px);background:#fff}
+  .no.hold{
+    position:relative;left:auto;top:auto;transform:none;margin-top:14px;
+    overflow:hidden;padding:14px 24px;font-size:16px;
+    touch-action:none;user-select:none;-webkit-user-select:none;
+  }
+  .fill{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--coral);opacity:.4}
+  .lbl{position:relative;z-index:1}
+  .stack{display:flex;flex-direction:column;align-items:center}
+
+  .quip{
+    font-weight:700;font-size:14px;color:var(--coral);
+    min-height:22px;margin-top:2px;
+  }
+  .quip.show{animation:shake .4s}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+  /* schermata data */
+  .step{display:none}
+  .step.on{display:block;animation:slide .45s cubic-bezier(.2,1.2,.4,1) both}
+  .lead{font-size:17px;line-height:1.7;margin:0 auto;max-width:26ch}
+
+  .confetti{position:fixed;top:-20px;width:10px;height:16px;z-index:5;pointer-events:none;animation:fall linear forwards}
+  @keyframes fall{to{transform:translateY(105vh) rotate(720deg);opacity:.9}}
+
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<main class="card">
+  <!-- QUIZ -->
+  <section class="step on" id="quiz">
+    <div class="pips" id="pips"><i class="pip on"></i><i class="pip"></i><i class="pip"></i></div>
+    <span class="emoji" id="emoji">🔮</span>
+    <h1 id="question"></h1>
+    <div class="answers" id="answers">
+      <button class="btn yes" id="yes">Sì</button>
+      <button class="btn no" id="no">No</button>
+    </div>
+    <p class="quip" id="quip"></p>
+  </section>
+
+  <!-- FINE -->
+  <section class="step" id="done">
+    <span class="emoji">🥂</span>
+    <h1>Fatto.</h1>
+    <p class="lead">Non ti resta che decidere <span class="hl">quando</span> e dirlo a Federico.</p>
+  </section>
+
+</main>
+
+<script>
+/* ---------- domande ---------- */
+const QS = [
+  { emoji:'🔮',
+    html:'È vero che l\'oracolo di Simona <span class="hl">si sbagliava</span>?',
+    mode:'flee' },
+  { emoji:'🕵️',
+    html:'Federico merita una possibilità di <span class="hl">dimostrarlo</span>?',
+    mode:'morph' },
+  { emoji:'🍸',
+    html:'Aperitivo, quindi?',
+    mode:'hold' }
+];
+
+const QUIPS = [
+  'Ops, sembra rotto.',
+  'Strano, proprio quello.',
+  'Il tasto No è in ferie.',
+  'Continua pure, ho tempo.',
+  'Ok, sei testarda.'
+];
+
+const q=document.getElementById('question'), em=document.getElementById('emoji'),
+      yes=document.getElementById('yes'), no=document.getElementById('no'),
+      answers=document.getElementById('answers'), quip=document.getElementById('quip'),
+      pips=[...document.querySelectorAll('.pip')];
+
+let i=0, mode='flee', morphed=false, tries=0;
+let prog=0, holding=false, raf=0, holdTries=0;
+
+function load(n){
+  i=n; mode=QS[n].mode; morphed=false; prog=0; holding=false; holdTries=0;
+  cancelAnimationFrame(raf);
+  em.textContent=QS[n].emoji;
+  q.innerHTML=QS[n].html; q.classList.remove('swap'); void q.offsetWidth; q.classList.add('swap');
+  quip.textContent='';
+  no.className='btn no';
+  no.style.cssText='';
+  if(mode==='hold'){
+    no.classList.add('hold');
+    no.innerHTML='<span class="fill"></span><span class="lbl">Tieni premuto per dire no</span>';
+    answers.classList.add('stack');
+    answers.style.height='auto';
+  }else{
+    no.textContent='No';
+    answers.classList.remove('stack');
+    answers.style.height='';
+    no.style.left='50%'; no.style.top='0'; no.style.transform='translateX(55px)';
+  }
+  pips.forEach((p,k)=>p.classList.toggle('on',k<=n));
+}
+
+function tease(){
+  tries++;
+  quip.textContent = QUIPS[Math.min(tries-1, QUIPS.length-1)];
+  quip.classList.remove('show'); void quip.offsetWidth; quip.classList.add('show');
+}
+
+function flee(){
+  const b=answers.getBoundingClientRect();
+  no.style.left = Math.random()*Math.max(b.width-no.offsetWidth,0)+'px';
+  no.style.top  = Math.random()*Math.max(b.height-no.offsetHeight,0)+'px';
+  no.style.transform='none';
+}
+function morph(){
+  if(morphed) return;
+  morphed=true; no.textContent='Sì'; no.classList.add('yes');
+  quip.textContent='Ecco, così va meglio.';
+}
+/* --- tieni premuto: la barra non arriva mai in fondo --- */
+const HOLD_QUIPS = [
+  'Che succede? Non carica?',
+  'Ancora fermo lì. Che sfortuna.',
+  'Il bottone dice che è stanco.',
+  'Il Sì invece funziona al primo colpo.',
+  'Va bene, hai vinto tu: comunque no.'
+];
+function paint(){
+  const f=no.querySelector('.fill'), l=no.querySelector('.lbl');
+  if(!f) return;
+  f.style.width=prog+'%';
+  l.textContent = prog>2 ? 'Tieni premuto… '+Math.floor(prog)+'%' : 'Tieni premuto per dire no';
+}
+function startHold(){
+  if(holding) return;
+  holding=true;
+  cancelAnimationFrame(raf);
+  let last=performance.now();
+  const step=t=>{
+    prog+=(t-last)/1000*45; last=t;
+    if(prog>=99){                 // si blocca qui e non va oltre
+      prog=99; paint();
+      holdTries++;
+      quip.textContent=HOLD_QUIPS[Math.min(holdTries-1,HOLD_QUIPS.length-1)];
+      quip.classList.remove('show'); void quip.offsetWidth; quip.classList.add('show');
+      return;
+    }
+    paint(); raf=requestAnimationFrame(step);
+  };
+  raf=requestAnimationFrame(step);
+}
+function release(){
+  if(!holding) return;
+  holding=false;
+  cancelAnimationFrame(raf);
+  let last=performance.now();
+  const step=t=>{
+    prog-=(t-last)/1000*260; last=t;
+    if(prog<=0){ prog=0; paint(); return; }
+    paint(); raf=requestAnimationFrame(step);
+  };
+  raf=requestAnimationFrame(step);
+}
+function dodge(){ if(mode==='flee'){flee();tease();} else if(mode==='morph') morph(); }
+
+document.addEventListener('mousemove', e=>{
+  if(mode!=='flee') return;
+  const r=no.getBoundingClientRect();
+  if(Math.hypot(e.clientX-(r.left+r.width/2), e.clientY-(r.top+r.height/2))<110){ flee(); tease(); }
+});
+no.addEventListener('mouseenter', dodge);
+no.addEventListener('focus', dodge);
+no.addEventListener('touchstart', e=>{ if(mode!=='hold'){ e.preventDefault(); dodge(); } }, {passive:false});
+no.addEventListener('click', e=>{
+  if(mode==='morph'&&morphed) return next();
+  e.preventDefault(); dodge();
+});
+
+no.addEventListener('pointerdown', e=>{ if(mode==='hold'){ e.preventDefault(); startHold(); } });
+['pointerup','pointerleave','pointercancel'].forEach(ev=>
+  no.addEventListener(ev, ()=>{ if(mode==='hold') release(); })
+);
+no.addEventListener('keydown', e=>{ if(mode==='hold' && (e.key===' '||e.key==='Enter')){ e.preventDefault(); startHold(); } });
+no.addEventListener('keyup', ()=>{ if(mode==='hold') release(); });
+yes.addEventListener('click', next);
+
+function show(id){
+  document.querySelectorAll('.step').forEach(s=>s.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+}
+function next(){
+  if(i<2) load(i+1);
+  else { pips.forEach(p=>p.classList.add('on')); show('done'); rain(); }
+}
+
+/* ---------- coriandoli ---------- */
+function rain(){
+  const cols=['#ff5e5b','#ffa24b','#25cf9b','#57bdf5','#ffd76e'];
+  for(let n=0;n<70;n++){
+    const c=document.createElement('i');
+    c.className='confetti';
+    c.style.left=Math.random()*100+'vw';
+    c.style.background=cols[n%cols.length];
+    c.style.animationDuration=(2.2+Math.random()*1.8)+'s';
+    c.style.animationDelay=(Math.random()*.6)+'s';
+    c.style.borderRadius=Math.random()>.5?'50%':'2px';
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(),5000);
+  }
+}
+
+/* ---------- bolle di sfondo ---------- */
+[['#ffd76e',220,'8%','12%',0],['#ff5e5b',150,'78%','22%',3],['#57bdf5',180,'12%','72%',6],['#25cf9b',120,'82%','78%',9]]
+.forEach(([c,s,l,t,d])=>{
+  const b=document.createElement('div'); b.className='blob';
+  b.style.cssText=`background:${c};width:${s}px;height:${s}px;left:${l};top:${t};animation-delay:${d}s`;
+  document.body.appendChild(b);
+});
+
+load(0);
+</script>
+</body>
+</html>
