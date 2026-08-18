@@ -18,13 +18,14 @@
     --shadow:#33204d;
   }
   *{box-sizing:border-box}
-  html,body{height:100%;margin:0}
+  html,body{margin:0}
   body{
     font-family:"Nunito",system-ui,sans-serif;
     color:var(--grape);
     background:linear-gradient(160deg,#ffd76e 0%,#ff9d6e 45%,#ff6f91 100%);
     display:flex;align-items:center;justify-content:center;
-    padding:22px;overflow:hidden;
+    min-height:100vh;min-height:100dvh;
+    padding:22px;overflow-x:hidden;
   }
 
   /* bolle che galleggiano */
@@ -247,7 +248,11 @@ document.addEventListener('mousemove', e=>{
 });
 no.addEventListener('mouseenter', dodge);
 no.addEventListener('focus', dodge);
-no.addEventListener('touchstart', e=>{ if(mode!=='hold'){ e.preventDefault(); dodge(); } }, {passive:false});
+no.addEventListener('touchstart', e=>{
+  if(mode==='hold') return;
+  if(mode==='morph' && morphed) return;   // ora e' un Si vero: lascia passare il tap
+  e.preventDefault(); dodge();
+}, {passive:false});
 no.addEventListener('click', e=>{
   if(mode==='morph'&&morphed) return next();
   e.preventDefault(); dodge();
